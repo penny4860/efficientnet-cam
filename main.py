@@ -10,13 +10,14 @@ from keras.models import Model
 import keras.applications.resnet50 as resnet
 from keras.layers import UpSampling2D, Conv2D
 
-# Set an appropriate image file
-parser = argparse.ArgumentParser(description='Class activation maps with Keras.')
-parser.add_argument('input_image', metavar='base', type=str,
-                    help='Path to the image to use.')
-args = parser.parse_args()
-input_image = args.input_image
+# # Set an appropriate image file
+# parser = argparse.ArgumentParser(description='Class activation maps with Keras.')
+# parser.add_argument('input_image', metavar='base', type=str,
+#                     help='Path to the image to use.')
+# args = parser.parse_args()
+# input_image = args.input_image
 
+input_image = "imgs/sample.jpg"
 
 ################################################################
 # The following parameters can be changed to other models
