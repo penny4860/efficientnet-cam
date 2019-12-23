@@ -65,12 +65,17 @@ if __name__ == '__main__':
     # The following parameters can be changed to other models
     # that use global average pooling.
     # e.g.) InceptionResnetV2 / NASNetLarge
-    NETWORK_INPUT_SIZE = 224
-    MODEL_CLASS = efn.EfficientNetB0
+    NETWORK_INPUT_SIZE = 240
+    MODEL_CLASS = efn.EfficientNetB1
     PREPROCESS_FN = efn.preprocess_input
     LAST_CONV_LAYER = 'top_activation'
     PRED_LAYER = 'probs'
     ################################################################
+
+    # B0 : [224,224,3] => [7,7,1280]
+    # B1 : [240,240,3] => [8,8,1280]
+
+    # B5 : [456,456,3] => [15,15,2048]
 
     # model = MODEL_CLASS(input_shape=(
     # NETWORK_INPUT_SIZE, NETWORK_INPUT_SIZE, 3))
