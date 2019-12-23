@@ -14,7 +14,8 @@ from keras.layers import UpSampling2D, Conv2D
 def load_img(fname, input_size, preprocess_fn):
     original_img = cv2.imread(fname)[:, :, ::-1]
     original_size = (original_img.shape[1], original_img.shape[0])
-    img = cv2.resize(original_img, (input_size, input_size))
+    img = efn.center_crop_and_resize(original_img, input_size)
+    # img = cv2.resize(original_img, (input_size, input_size))
     imgs = np.expand_dims(preprocess_fn(img), axis=0)
     return imgs, original_img, original_size
 
@@ -23,7 +24,8 @@ def get_cam_model(model_class,
                   input_size=224,
                   last_conv_layer='activation_49',
                   pred_layer='fc1000'):
-    model = model_class(input_shape=(input_size, input_size, 3))
+    # model = model_class(input_shape=(input_size, input_size, 3))
+    model = efn.EfficientNetB0(weights='imagenet')
 
     final_params = model.get_layer(pred_layer).get_weights()
     final_params = (final_params[0].reshape(
@@ -51,6 +53,9 @@ def postprocess(preds, cams, top_k=1):
 
 if __name__ == '__main__':
 
+    import efficientnet.keras as efn
+    # image = efn.preprocess_input(image)
+
     input_image = "imgs/sample.jpg"
     N_CLASSES = 1000
 
@@ -59,18 +64,19 @@ if __name__ == '__main__':
     # that use global average pooling.
     # e.g.) InceptionResnetV2 / NASNetLarge
     NETWORK_INPUT_SIZE = 224
-    MODEL_CLASS = resnet.ResNet50
-    PREPROCESS_FN = resnet.preprocess_input
-    LAST_CONV_LAYER = 'activation_49'
-    PRED_LAYER = 'fc1000'
+    MODEL_CLASS = efn.EfficientNetB0
+    PREPROCESS_FN = efn.preprocess_input
+    LAST_CONV_LAYER = 'top_activation'
+    PRED_LAYER = 'probs'
     ################################################################
 
-    MODEL_CLASS.summary()
+    # model = MODEL_CLASS(input_shape=(
+    # NETWORK_INPUT_SIZE, NETWORK_INPUT_SIZE, 3))
 
     # 1. load image
     imgs, original_img, original_size = load_img(input_image,
                                                  input_size=NETWORK_INPUT_SIZE,
-                                                 preprocess_fn=resnet.preprocess_input)
+                                                 preprocess_fn=PREPROCESS_FN)
 
     # 2. prediction
     model = get_cam_model(resnet.ResNet50,
