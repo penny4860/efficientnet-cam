@@ -14,8 +14,7 @@ from keras.layers import UpSampling2D, Conv2D
 def load_img(fname, input_size, preprocess_fn):
     original_img = cv2.imread(fname)[:, :, ::-1]
     original_size = (original_img.shape[1], original_img.shape[0])
-    img = efn.center_crop_and_resize(original_img, input_size)
-    # img = cv2.resize(original_img, (input_size, input_size))
+    img = cv2.resize(original_img, (input_size, input_size))
     imgs = np.expand_dims(preprocess_fn(img), axis=0)
     return imgs, original_img, original_size
 
@@ -25,7 +24,8 @@ def get_cam_model(model_class,
                   last_conv_layer='activation_49',
                   pred_layer='fc1000'):
     # model = model_class(input_shape=(input_size, input_size, 3))
-    model = efn.EfficientNetB0(weights='imagenet')
+    model = model_class(weights='imagenet')
+    model.summary()
 
     final_params = model.get_layer(pred_layer).get_weights()
     final_params = (final_params[0].reshape(
@@ -48,6 +48,8 @@ def postprocess(preds, cams, top_k=1):
     class_activation_map = np.zeros_like(cams[0, :, :, 0])
     for i in idxes:
         class_activation_map += cams[0, :, :, i]
+    class_activation_map[class_activation_map < 0] = 0
+    class_activation_map = class_activation_map / class_activation_map.max()
     return class_activation_map
 
 
@@ -63,8 +65,8 @@ if __name__ == '__main__':
     # The following parameters can be changed to other models
     # that use global average pooling.
     # e.g.) InceptionResnetV2 / NASNetLarge
-    NETWORK_INPUT_SIZE = 224
-    MODEL_CLASS = efn.EfficientNetB0
+    NETWORK_INPUT_SIZE = 240
+    MODEL_CLASS = efn.EfficientNetB1
     PREPROCESS_FN = efn.preprocess_input
     LAST_CONV_LAYER = 'top_activation'
     PRED_LAYER = 'probs'
@@ -79,14 +81,14 @@ if __name__ == '__main__':
                                                  preprocess_fn=PREPROCESS_FN)
 
     # 2. prediction
-    model = get_cam_model(resnet.ResNet50,
+    model = get_cam_model(MODEL_CLASS,
                           NETWORK_INPUT_SIZE,
                           LAST_CONV_LAYER,
                           PRED_LAYER)
     preds, cams = model.predict(imgs)
 
     # 4. post processing
-    class_activation_map = postprocess(preds, cams)
+    class_activation_map = postprocess(preds, cams, top_k=10)
 
     # 5. plot image+cam to original size
     plt.imshow(original_img, alpha=0.5)
