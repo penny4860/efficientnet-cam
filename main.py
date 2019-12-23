@@ -10,29 +10,6 @@ from keras.models import Model
 import keras.applications.resnet50 as resnet
 from keras.layers import UpSampling2D, Conv2D
 
-# # Set an appropriate image file
-# parser = argparse.ArgumentParser(description='Class activation maps with Keras.')
-# parser.add_argument('input_image', metavar='base', type=str,
-#                     help='Path to the image to use.')
-# args = parser.parse_args()
-# input_image = args.input_image
-
-input_image = "imgs/sample.jpg"
-
-################################################################
-# The following parameters can be changed to other models
-# that use global average pooling.
-# e.g.) InceptionResnetV2 / NASNetLarge
-NETWORK_INPUT_SIZE = 224
-MODEL_CLASS = resnet.ResNet50
-PREPROCESS_FN = resnet.preprocess_input
-LAST_CONV_LAYER = 'activation_49'
-PRED_LAYER = 'fc1000'
-################################################################
-
-# number of imagenet classes
-N_CLASSES = 1000
-
 
 def load_img(fname, input_size, preprocess_fn):
     original_img = cv2.imread(fname)[:, :, ::-1]
@@ -72,23 +49,41 @@ def postprocess(preds, cams, top_k=1):
     return class_activation_map
 
 
-# 1. load image
-imgs, original_img, original_size = load_img(input_image,
-                                             input_size=NETWORK_INPUT_SIZE,
-                                             preprocess_fn=resnet.preprocess_input)
+if __name__ == '__main__':
 
-# 2. prediction
-model = get_cam_model(resnet.ResNet50,
-                      NETWORK_INPUT_SIZE,
-                      LAST_CONV_LAYER,
-                      PRED_LAYER)
-preds, cams = model.predict(imgs)
+    input_image = "imgs/sample.jpg"
+    N_CLASSES = 1000
 
-# 4. post processing
-class_activation_map = postprocess(preds, cams)
+    ################################################################
+    # The following parameters can be changed to other models
+    # that use global average pooling.
+    # e.g.) InceptionResnetV2 / NASNetLarge
+    NETWORK_INPUT_SIZE = 224
+    MODEL_CLASS = resnet.ResNet50
+    PREPROCESS_FN = resnet.preprocess_input
+    LAST_CONV_LAYER = 'activation_49'
+    PRED_LAYER = 'fc1000'
+    ################################################################
 
-# 5. plot image+cam to original size
-plt.imshow(original_img, alpha=0.5)
-plt.imshow(cv2.resize(class_activation_map,
-                      original_size), cmap='jet', alpha=0.5)
-plt.show()
+    MODEL_CLASS.summary()
+
+    # 1. load image
+    imgs, original_img, original_size = load_img(input_image,
+                                                 input_size=NETWORK_INPUT_SIZE,
+                                                 preprocess_fn=resnet.preprocess_input)
+
+    # 2. prediction
+    model = get_cam_model(resnet.ResNet50,
+                          NETWORK_INPUT_SIZE,
+                          LAST_CONV_LAYER,
+                          PRED_LAYER)
+    preds, cams = model.predict(imgs)
+
+    # 4. post processing
+    class_activation_map = postprocess(preds, cams)
+
+    # 5. plot image+cam to original size
+    plt.imshow(original_img, alpha=0.5)
+    plt.imshow(cv2.resize(class_activation_map,
+                          original_size), cmap='jet', alpha=0.5)
+    plt.show()
