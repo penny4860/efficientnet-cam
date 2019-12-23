@@ -65,8 +65,8 @@ if __name__ == '__main__':
     # The following parameters can be changed to other models
     # that use global average pooling.
     # e.g.) InceptionResnetV2 / NASNetLarge
-    NETWORK_INPUT_SIZE = 240
-    MODEL_CLASS = efn.EfficientNetB1
+    NETWORK_INPUT_SIZE = 224
+    MODEL_CLASS = efn.EfficientNetB0
     PREPROCESS_FN = efn.preprocess_input
     LAST_CONV_LAYER = 'top_activation'
     PRED_LAYER = 'probs'
@@ -88,7 +88,7 @@ if __name__ == '__main__':
     preds, cams = model.predict(imgs)
 
     # 4. post processing
-    class_activation_map = postprocess(preds, cams, top_k=10)
+    class_activation_map = postprocess(preds, cams, top_k=1)
 
     # 5. plot image+cam to original size
     plt.imshow(original_img, alpha=0.5)
